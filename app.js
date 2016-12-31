@@ -48,7 +48,7 @@ app.get("/epatw", function (req, res) {
 });
 
 var fs = require("fs");
-var jf = fs.readFileSync("taqi2.json", "utf8");
+//var jf = fs.readFileSync("taqi2.json", "utf8");
 //var jTaqs = JSON.parse(jf);
 var tabName = "/epatw";
 function loadAq2Db() {
