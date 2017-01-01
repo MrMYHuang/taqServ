@@ -30,7 +30,8 @@ app.use('/users', users);
 
 // Connect to MongoDB.
 var db;
-mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, _db) {
+mongodb.MongoClient.connect("YourMongoDbUri", function (err, _db) {
+//mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, _db) {
     db = _db;
     db.authenticate("taq", "YourDbPassword");
 });
@@ -57,7 +58,7 @@ function loadAq2Db() {
         if (!error && response.statusCode == 200) {
             // Save to file.
             var jTaqStr = JSON.stringify(body)
-            fs.writeFile('taqi.json', jTaqStr, 'utf8');
+            fs.writeFile('public/taqi.json', jTaqStr, 'utf8');
 
             var jb = JSON.parse(body)
             var jTaqs = jb.result.records;
