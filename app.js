@@ -28,21 +28,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 
+// Connect to MongoDB.
 var db;
 mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, _db) {
     db = _db;
     db.authenticate("taq", "YourDbPassword");
-    //db.collection(req.query.tabName).updateOne({ hour: }, {} {upsert: true})
 });
 
 var aqFieldsOrig = ["AQI", "PM2.5", "PM2.5_AVG", "PM10", "PM10_AVG", "O3", "O3_8hr", "CO", "CO_8hr", "SO2", "NO2", "NOx", "NO", "WindSpeed", "WindDirec"];
 
 var aqFields = ["AQI", "PM2_5", "PM2_5_AVG", "PM10", "PM10_AVG", "O3", "O3_8hr", "CO", "CO_8hr", "SO2", "NO2", "NOx", "NO", "WindSpeed", "WindDirec"];
 
+var tabName = "/epatw";
 // Get aq data of siteName.
-app.get("/epatw", function (req, res) {
+app.get(tabName, function (req, res) {
     var siteName = req.query.siteName;
-    db.collection("/epatw").findOne({ SiteName: siteName }, function (err, doc) {
+    db.collection(tabName).findOne({ SiteName: siteName }, function (err, doc) {
         res.json(doc);
     })
 });
@@ -50,11 +51,14 @@ app.get("/epatw", function (req, res) {
 var fs = require("fs");
 //var jf = fs.readFileSync("taqi2.json", "utf8");
 //var jTaqs = JSON.parse(jf);
-var tabName = "/epatw";
 function loadAq2Db() {
     var request = require('request');
     request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805/?format=json&sort=SiteName&token=EVrPslGk9U2ftHxkwwkW4g', function (error, response, body) {
         if (!error && response.statusCode == 200) {
+            // Save to file.
+            var jTaqStr = JSON.stringify(body)
+            fs.writeFile('taqi.json', jTaqStr, 'utf8');
+
             var jb = JSON.parse(body)
             var jTaqs = jb.result.records;
             db.collection(tabName, function(err, collection) {
@@ -93,6 +97,7 @@ function loadAq2Db() {
     })
 }
 
+/*
 setInterval(function () {
     var t = new Date();
     console.log("Load AQ data to database start: " + t.toLocaleDateString() + " " + t.toLocaleTimeString());
@@ -100,13 +105,14 @@ setInterval(function () {
     t = new Date();
     console.log("Load AQ data to database end: " + t.toLocaleDateString() + " " + t.toLocaleTimeString());
 }, 1000 * 60 * 10);
-
+*/
 
 app.get("/manual", function (req, res) {
     loadAq2Db();
     res.send("Done!");
 })
 
+// Init MongoDB tables.
 var jfg = fs.readFileSync("geos.json", "utf8");
 var jGeos = JSON.parse(jfg);
 app.get("/initTabs", function (req, res) {
