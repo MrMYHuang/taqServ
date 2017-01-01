@@ -77,7 +77,9 @@ function loadAq2Db() {
                                 }
                             }
                             var jTaq = jTaqs[s];
+
                             var pubHour = Number(String(jTaq["PublishTime"]).substring(11, 13));
+                            aqs["updateDate"] = String(jTaq["PublishTime"]).substring(5, 10);
                             aqs["updateHour"] = pubHour;
 
                             for (var a = 0; a < aqFields.length; a++) {
@@ -132,6 +134,7 @@ app.get("/initTabs", function (req, res) {
             aqs[aqField] = zeros24.slice();
         }
         aqs["updateHour"] = 0;
+        aqs["updateDate"] = "01-01";
         aqs["SiteName"] = sn;
         db.collection(tabName).insertOne(aqs, function (err, doc) {
         });
