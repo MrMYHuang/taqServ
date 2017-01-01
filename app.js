@@ -30,8 +30,8 @@ app.use('/users', users);
 
 // Connect to MongoDB.
 var db;
-mongodb.MongoClient.connect("YourMongoDbUri", function (err, _db) {
-//mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, _db) {
+//mongodb.MongoClient.connect("YourMongoDbUri", function (err, _db) {
+mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, _db) {
     db = _db;
     db.authenticate("taq", "YourDbPassword");
 });
@@ -50,6 +50,7 @@ app.get(tabName, function (req, res) {
 });
 
 var fs = require("fs");
+var aqJsonFile = 'taqi.json'
 //var jf = fs.readFileSync("taqi2.json", "utf8");
 //var jTaqs = JSON.parse(jf);
 function loadAq2Db() {
@@ -57,8 +58,7 @@ function loadAq2Db() {
     request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805/?format=json&sort=SiteName&token=EVrPslGk9U2ftHxkwwkW4g', function (error, response, body) {
         if (!error && response.statusCode == 200) {
             // Save to file.
-            var jTaqStr = JSON.stringify(body)
-            fs.writeFile('public/taqi.json', jTaqStr, 'utf8');
+            fs.writeFile(aqJsonFile, body, 'utf8');
 
             var jb = JSON.parse(body)
             var jTaqs = jb.result.records;
@@ -108,9 +108,13 @@ setInterval(function () {
 }, 1000 * 60 * 10);
 */
 
-app.get("/manual", function (req, res) {
+app.get("/loadAq2Db", function (req, res) {
     loadAq2Db();
     res.send("Done!");
+})
+
+app.get("/aqJsonDb", function (req, res) {
+    res.sendfile(aqJsonFile);
 })
 
 // Init MongoDB tables.
