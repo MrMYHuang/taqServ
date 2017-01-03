@@ -40,9 +40,9 @@ var aqFieldsOrig = ["AQI", "PM2.5", "PM2.5_AVG", "PM10", "PM10_AVG", "O3", "O3_8
 
 var aqFields = ["AQI", "PM2_5", "PM2_5_AVG", "PM10", "PM10_AVG", "O3", "O3_8hr", "CO", "CO_8hr", "SO2", "NO2", "NOx", "NO", "WindSpeed", "WindDirec"];
 
-var tabName = "/epatw";
+var tabName = "epatw";
 // Get aq data of siteName.
-app.get(tabName, function (req, res) {
+app.get("/" + tabName, function (req, res) {
     var siteName = req.query.siteName;
     db.collection(tabName).findOne({ SiteName: siteName }, function (err, doc) {
         res.json(doc);
@@ -132,7 +132,6 @@ app.get("/initTabs", function (req, res) {
     var zeros24 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     for (var s = 0; s < jGeos.length; s++) {
         var sn = jGeos[s]["SiteName"];
-        var tabName = "/epatw";
         var aqs = {};
         for (var a = 0; a < aqFields.length; a++) {
             var aqField = aqFields[a];
