@@ -50,9 +50,13 @@ app.get(tabName, function (req, res) {
 });
 
 var fs = require("fs");
+/*
+var jf = fs.readFileSync("taqi2.json", "utf8");
+var jb = JSON.parse(jf);
+var jTaqs = jb.result.records;
+*/
+
 var aqJsonFile = 'taqi.json'
-//var jf = fs.readFileSync("taqi2.json", "utf8");
-//var jTaqs = JSON.parse(jf);
 function loadAq2Db() {
     var request = require('request');
     request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805/?format=json&sort=SiteName&token=EVrPslGk9U2ftHxkwwkW4g', function (error, response, body) {
@@ -62,7 +66,7 @@ function loadAq2Db() {
 
             var jb = JSON.parse(body)
             var jTaqs = jb.result.records;
-            db.collection(tabName, function(err, collection) {
+            db.collection(tabName, function (err, collection) {
                 collection.find(function (err, cursor) {
                     cursor.each(function (err, doc) {
                         if (doc != null) {
@@ -82,10 +86,11 @@ function loadAq2Db() {
                             aqs["updateDate"] = String(jTaq["PublishTime"]).substring(5, 10);
                             aqs["updateHour"] = pubHour;
 
+                            var v;
                             for (var a = 0; a < aqFields.length; a++) {
                                 var aqFieldOrig = aqFieldsOrig[a];
                                 var aqField = aqFields[a];
-                                aqs[aqField][pubHour] = parseFloat(jTaq[aqFieldOrig]);
+                                aqs[aqField][pubHour] = isNaN(v = parseFloat(jTaq[aqFieldOrig])) ? 0 : v;
                             }
                             db.collection(tabName).updateOne({ _id: id }, aqs, { upsert: true }, function (err) {
                                 if (err) {
