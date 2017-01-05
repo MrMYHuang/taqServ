@@ -28,13 +28,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 
+var aqJsonFile = 'taqi.json'
+
 // Connect to MongoDB.
 var db;
 //mongodb.MongoClient.connect("YourMongoDbUri", function (err, _db) {
 mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, _db) {
     db = _db
     db.authenticate("taq", "YourDbPassword")
-    require("./postDbInit")(app, db)
+    require("./postDbInit")(app, db, aqJsonFile)
 })
 
 app.get("/aqJsonDb", function (req, res) {

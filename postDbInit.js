@@ -21,7 +21,6 @@
     var jTaqs = jb.result.records;
     */
 
-    var aqJsonFile = 'taqi.json'
     function loadAq2Db() {
         var request = require('request');
         request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805/?format=json&sort=SiteName&token=EVrPslGk9U2ftHxkwwkW4g', function (error, response, body) {
