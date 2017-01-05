@@ -4,6 +4,7 @@ var router = express.Router();
 
 // Init MongoDB tables.
 router.get('/', function (req, res) {
+    var fs = require("fs");
     var jfg = fs.readFileSync("geos.json", "utf8");
     var jGeos = JSON.parse(jfg);
     // 24 zeros.
