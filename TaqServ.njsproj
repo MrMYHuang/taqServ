@@ -34,6 +34,7 @@
   <ItemGroup>
     <Compile Include="app.js" />
     <Compile Include="routes\index.js" />
+    <Compile Include="routes\initTabs.js" />
     <Compile Include="routes\users.js" />
     <Content Include="bin\www" />
     <Content Include="geos.json" />

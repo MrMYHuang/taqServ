@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
+var initTabs = require('./routes/initTabs');
 
 var mongodb = require("mongodb");
 
@@ -27,6 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/users', users);
+app.use('/initTabs', initTabs);
 
 // Connect to MongoDB.
 var db;
@@ -123,28 +125,6 @@ app.get("/loadAq2Db", function (req, res) {
 app.get("/aqJsonDb", function (req, res) {
     res.sendfile(aqJsonFile);
 })
-
-// Init MongoDB tables.
-var jfg = fs.readFileSync("geos.json", "utf8");
-var jGeos = JSON.parse(jfg);
-app.get("/initTabs", function (req, res) {
-    // 24 zeros.
-    var zeros24 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    for (var s = 0; s < jGeos.length; s++) {
-        var sn = jGeos[s]["SiteName"];
-        var aqs = {};
-        for (var a = 0; a < aqFields.length; a++) {
-            var aqField = aqFields[a];
-            aqs[aqField] = zeros24.slice();
-        }
-        aqs["updateHour"] = 0;
-        aqs["updateDate"] = "01-01";
-        aqs["SiteName"] = sn;
-        db.collection(tabName).insertOne(aqs, function (err, doc) {
-        });
-    }
-    res.send("Done!");
-});
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
