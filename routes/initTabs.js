@@ -15,7 +15,7 @@ module.exports = function (aqFields, db, tabName) {
             var aqs = {};
             for (var a = 0; a < aqFields.length; a++) {
                 var aqField = aqFields[a];
-                aqs[aqField] = zeros24.slice();
+                aqs[aqField.replace(".", "_")] = zeros24.slice();
             }
             aqs["updateHour"] = 0;
             aqs["updateDate"] = "01-01";

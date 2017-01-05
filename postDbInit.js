@@ -53,10 +53,10 @@
 
                                 var v;
                                 for (var a = 0; a < aqFields.length; a++) {
+                                    var aqField = aqFields[a];
                                     // MongoDB disallows "." in a field name.
-                                    var aqField = aqFields[a].replace(".", "_");
                                     // Convert to 0 if is NaN.
-                                    aqs[aqField][pubHour] = isNaN(v = parseFloat(jTaq[aqField])) ? 0 : v;
+                                    aqs[aqField.replace(".", "_")][pubHour] = isNaN(v = parseFloat(jTaq[aqField])) ? 0 : v;
                                 }
                                 db.collection(tabName).updateOne({ _id: id }, aqs, { upsert: true }, function (err) {
                                     if (err) {
