@@ -1,7 +1,5 @@
 ﻿function postDbInit(app, db) {
-    var aqFieldsOrig = ["AQI", "PM2.5", "PM2.5_AVG", "PM10", "PM10_AVG", "O3", "O3_8hr", "CO", "CO_8hr", "SO2", "NO2", "NOx", "NO", "WindSpeed", "WindDirec"];
-
-    var aqFields = ["AQI", "PM2_5", "PM2_5_AVG", "PM10", "PM10_AVG", "O3", "O3_8hr", "CO", "CO_8hr", "SO2", "NO2", "NOx", "NO", "WindSpeed", "WindDirec"];
+    var aqFields = ["AQI", "PM2.5", "PM2.5_AVG", "PM10", "PM10_AVG", "O3", "O3_8hr", "CO", "CO_8hr", "SO2", "NO2", "NOx", "NO", "WindSpeed", "WindDirec"];
 
     var tabName = "epatw";
 
@@ -55,9 +53,10 @@
 
                                 var v;
                                 for (var a = 0; a < aqFields.length; a++) {
-                                    var aqFieldOrig = aqFieldsOrig[a];
-                                    var aqField = aqFields[a];
-                                    aqs[aqField][pubHour] = isNaN(v = parseFloat(jTaq[aqFieldOrig])) ? 0 : v;
+                                    // MongoDB disallows "." in a field name.
+                                    var aqField = aqFields[a].replace(".", "_");
+                                    // Convert to 0 if is NaN.
+                                    aqs[aqField][pubHour] = isNaN(v = parseFloat(jTaq[aqField])) ? 0 : v;
                                 }
                                 db.collection(tabName).updateOne({ _id: id }, aqs, { upsert: true }, function (err) {
                                     if (err) {
@@ -86,40 +85,6 @@
         loadAq2Db();
         res.send("Done!");
     })
-
-    app.get("/aqJsonDb", function (req, res) {
-        res.sendfile(aqJsonFile);
-    })
-
-    // catch 404 and forward to error handler
-    app.use(function (req, res, next) {
-        var err = new Error('Not Found');
-        err.status = 404;
-        next(err);
-    });
-
-    // error handlers
-
-    // development error handler
-    // will print stacktrace
-    if (app.get('env') === 'development') {
-        app.use(function (err, req, res, next) {
-            res.status(err.status || 500);
-            res.render('error', {
-                message: err.message,
-                error: err
-            });
-        });
-    }
-
-    // production error handler
-    // no stacktraces leaked to user
-    app.use(function (err, req, res, next) {
-        res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            error: {}
-        });
-    });
 }
+
 module.exports = postDbInit
