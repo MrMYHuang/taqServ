@@ -39,6 +39,7 @@
     <Content Include="bin\www" />
     <Content Include="geos.json" />
     <Content Include="package.json" />
+    <Content Include="postDbInit.js" />
     <Content Include="public\stylesheets\main.css" />
     <Content Include="README.md" />
     <Content Include="views\error.pug" />

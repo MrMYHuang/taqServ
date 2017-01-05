@@ -5,3 +5,4 @@ node_modules
 /public/taqi.json
 /.vs/TaqServ/v15/.suo
 /..gitignore.un~
+/.vs/config/applicationhost.config
