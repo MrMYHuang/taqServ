@@ -1,8 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
 node_modules
 /taqi2.json
 /taqi.json
 /README.md
 /public/taqi.json
 /.vs/TaqServ/v15/.suo
-/..gitignore.un~
-/.vs/config/applicationhost.config
