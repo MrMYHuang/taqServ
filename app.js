@@ -49,6 +49,7 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
         var request = require('request');
         request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805/?format=json&sort=SiteName&token=EVrPslGk9U2ftHxkwwkW4g', function (error, response, body) {
             if (!error && response.statusCode == 200) {
+                var fs = require("fs")
                 // Save to file.
                 fs.writeFile(aqJsonFile, body, 'utf8');
 
