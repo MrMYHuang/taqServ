@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26014.0
+VisualStudioVersion = 15.0.26020.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "TaqServ", "TaqServ.njsproj", "{CAE859E5-7A4F-4BEB-BFD7-80153B7B8346}"
-EndProject
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "ExpressApp1", "ExpressApp1\ExpressApp1.njsproj", "{4A7908E9-F039-457D-8DA7-59AD14C4D405}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +15,6 @@ Global
 		{CAE859E5-7A4F-4BEB-BFD7-80153B7B8346}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CAE859E5-7A4F-4BEB-BFD7-80153B7B8346}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CAE859E5-7A4F-4BEB-BFD7-80153B7B8346}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4A7908E9-F039-457D-8DA7-59AD14C4D405}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4A7908E9-F039-457D-8DA7-59AD14C4D405}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4A7908E9-F039-457D-8DA7-59AD14C4D405}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4A7908E9-F039-457D-8DA7-59AD14C4D405}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
