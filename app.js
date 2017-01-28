@@ -37,60 +37,72 @@ var usersTabName = "users"
 
 // Connect to MongoDB.
 var db;
-var MONGODB_URI = process.env.MONGODB_URI;
+//var MONGODB_URI = process.env.MONGODB_URI;
 //var MONGODB_URI = "YourMongoDbUri"
-//var MONGODB_URI = "YourMongoDbUri"
+var MONGODB_URI = "YourMongoDbUri"
 mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
     db = _db
     var initTabs = require('./routes/initTabs')(aqFields, db, tabName);
     app.use('/initTabs', initTabs);
-
-    function loadAq2Db() {
+    
+    function loadAqJson2Db() {
+        // Download AQ db json from TW EPA.
         var request = require('request');
-        request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805/?format=json&sort=SiteName&token=EVrPslGk9U2ftHxkwwkW4g', function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                var fs = require("fs")
-                // Save to file.
-                fs.writeFile(aqJsonFile, body, 'utf8');
+        request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805/?format=json&sort=SiteName&token=EVrPslGk9U2ftHxkwwkW4g', updateAllSites2Db)
+    }
 
-                var jb = JSON.parse(body)
-                var jTaqs = jb.result.records;
-                db.collection(tabName, function (err, collection) {
-                    collection.find(function (err, cursor) {
-                        cursor.each(function (err, doc) {
-                            if (doc != null) {
-                                var aqs = doc;
-                                var id = aqs._id;
-                                delete aqs._id;
+    function updateAllSites2Db(error, response, body) {
+        if (error || response.statusCode != 200) {
+            console.log(error)
+            return
+        }
 
-                                var s = 0;
-                                for (; s < jTaqs.length; s++) {
-                                    if (jTaqs[s]["SiteName"] == aqs["SiteName"]) {
-                                        break;
-                                    }
-                                }
-                                var jTaq = jTaqs[s];
+        // Read json.
+        var fs = require("fs")
+        // Save to file.
+        fs.writeFileSync(aqJsonFile, body, 'utf8');
+        var jb = JSON.parse(body)
+        var jTaqs = jb.result.records;
 
-                                var pubHour = Number(String(jTaq["PublishTime"]).substring(11, 13));
-                                aqs["updateDate"] = String(jTaq["PublishTime"]).substring(5, 10);
-                                aqs["updateHour"] = pubHour;
+        // Loop for each site.
+        // Use let for async calls, not var here!
+        for (let s = 0; s < jTaqs.length; s++) {
+            updateOneSite2Db(jTaqs[s])
+        }
+    }
 
-                                var v;
-                                for (var a = 0; a < aqFields.length; a++) {
-                                    var aqField = aqFields[a];
-                                    // MongoDB disallows "." in a field name.
-                                    // Convert to 0 if is NaN.
-                                    aqs[aqField.replace(".", "_")][pubHour] = isNaN(v = parseFloat(jTaq[aqField])) ? 0 : v;
-                                }
-                                db.collection(tabName).updateOne({ _id: id }, aqs, { upsert: true }, function (err) {
-                                    if (err) {
-                                        res.send(err);
-                                    }
-                                })
-                            }
-                        })
-                    })
-                })
+    function updateOneSite2Db(jTaq) {
+        db.collection(tabName).findOne({ SiteName: jTaq["SiteName"] }, (err, doc) => {
+            updateAllAqs2Db(err, doc, jTaq)
+        })
+    }
+
+    function updateAllAqs2Db(err, doc, jTaq) {
+        if (doc == null) {
+            return
+        }
+
+        var aqs = doc;
+        var id = aqs._id;
+        delete aqs._id;
+
+        var pubHour = Number(String(jTaq["PublishTime"]).substring(11, 13));
+        aqs["updateDate"] = String(jTaq["PublishTime"]).substring(5, 10);
+        aqs["updateHour"] = pubHour;
+
+        // Loop for each AQ.
+        var v;
+        for (var a = 0; a < aqFields.length; a++) {
+            var aqField = aqFields[a];
+            // MongoDB disallows "." in a field name.
+            // Convert to 0 if is NaN.
+            aqs[aqField.replace(".", "_")][pubHour] = isNaN(v = parseFloat(jTaq[aqField])) ? 0 : v;
+        }
+        // Update DB.
+        db.collection(tabName).updateOne({ _id: id }, aqs, { upsert: true }, (err) => {
+            if (err) {
+                console.log(err)
+                return
             }
         })
     }
@@ -106,7 +118,7 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
     */
 
     app.get("/loadAq2Db", function (req, res) {
-        loadAq2Db();
+        loadAqJson2Db();
         res.send("Done!");
     })
 
