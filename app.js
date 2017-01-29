@@ -196,11 +196,11 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
         };
         // Validate Aut0 token.
         request(options, function (error, fbRes, body) {
-            var jFbRes = JSON.parse(body)
             if (fbRes.statusCode != 200) {
-                taqRes.send({ error: "Bad user token." })
+                taqRes.send({ error: "Bad user token. Respose from Auth0: " + body })
             }
             else {
+                var jFbRes = JSON.parse(body)
                 var uid = jFbRes.user_id
                 // Check if a registered user
                 db.collection(usersTabName).findOne({ uid: uid }, function (err, doc) {
@@ -217,22 +217,6 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
                             });
                     }
                 })
-            }
-        })
-    })
-
-    app.get("/fbLongToken", function (req, res) {
-        var longTokenUri = longTokenBaseUri + req.query.shortToken;
-        var request = require('request');
-        request(longTokenUri, function (error, resFb, body) {
-            if (!error) {
-                var access_token = body.match(/access_token=(.*)&/)
-                if (access_token) {
-                    res.send({ state: "ok", longToken: access_token[1] })
-                }
-                else {
-                    res.send({ state: "err" })
-                }
             }
         })
     })
