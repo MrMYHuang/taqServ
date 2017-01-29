@@ -186,7 +186,7 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
         return userPwd;
     }
 
-    app.post("/UserReg", function (taqReq, taqRes) {
+    app.post("/userReg", function (taqReq, taqRes) {
         var jReq = taqReq.body
         var options = {
             url: validateUserTokenUri,
