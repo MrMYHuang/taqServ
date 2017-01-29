@@ -194,6 +194,7 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
                 Authorization: 'Bearer ' + jReq.userToken
             }
         };
+        console.log(options)
         // Validate Aut0 token.
         request(options, function (error, fbRes, body) {
             if (fbRes.statusCode != 200) {
