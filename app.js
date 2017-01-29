@@ -195,7 +195,7 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
                 "content-type": "application/json"
             }
         };
-        console.log(options)
+        var request = require('request');
         // Validate Aut0 token.
         request(options, function (error, fbRes, body) {
             if (fbRes.statusCode != 200) {
