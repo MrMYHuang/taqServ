@@ -44,7 +44,7 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
     db = _db
     var initTabs = require('./routes/initTabs')(aqFields, db, tabName);
     app.use('/initTabs', initTabs);
-    
+
     function loadAqJson2Db() {
         // Download AQ db json from TW EPA.
         var request = require('request');
@@ -167,20 +167,8 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
         })
     })
 
-    var fbAppId = "1802120716705558";
-    var fbAppSecret = "6c2dec21d57d8c6392bc2d7ba08c943e";
-    var longTokenBaseUri = "https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=" + fbAppId + "&client_secret=" + fbAppSecret + "&fb_exchange_token="
-
-    var request = require('request');
-
-    var fbAppToken
-    var fbAppTokenUri = "https://graph.facebook.com/oauth/access_token?client_id=" + fbAppId + "& client_secret=" + fbAppSecret + "&grant_type=client_credentials"
-    var validateUserTokenBaseUri
-    // Get Facebook app access token.
-    request(fbAppTokenUri, function (error, resFb, body) {
-        fbAppToken = body.match(/access_token=(.*)/)[1]
-        validateUserTokenBaseUri = "https://graph.facebook.com/debug_token?access_token=" + fbAppToken + "&input_token="
-    })
+    var auth0Domain = "myh.auth0.com";
+    var validateUserTokenUri = "https://" + auth0Domain + "/userinfo"
 
     function genUserPwd(userPwdLen = 16) {
         var crypto = require('crypto');
@@ -197,15 +185,20 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
 
     app.post("/UserReg", function (taqReq, taqRes) {
         var jReq = taqReq.body
-        // Validate Facebook token.
-        var validateUserTokenUri = validateUserTokenBaseUri + jReq.userToken
-        request(validateUserTokenUri, function (error, fbRes, body) {
+        var options = {
+            url: validateUserTokenUri,
+            headers: {
+                Authorization: 'Bearer ' + jReq.userToken
+            }
+        };
+        // Validate Aut0 token.
+        request(options, function (error, fbRes, body) {
             var jFbRes = JSON.parse(body)
-            if (jFbRes.error || jFbRes.data.is_valid == false || jFbRes.data.app_id != fbAppId) {
-                taqRes.send({ error: "Bad Facebook user token." })
+            if (fbRes.statusCode != 200) {
+                taqRes.send({ error: "Bad user token." })
             }
             else {
-                var uid = jFbRes.data.user_id
+                var uid = jFbRes.user_id
                 // Check if a registered user
                 db.collection(usersTabName).findOne({ uid: uid }, function (err, doc) {
                     if (doc) {
