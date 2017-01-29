@@ -191,7 +191,8 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
         var options = {
             url: validateUserTokenUri,
             headers: {
-                Authorization: 'Bearer ' + jReq.userToken
+                "Authorization": "Bearer " + jReq.userToken,
+                "content-type": "application/json"
             }
         };
         console.log(options)
