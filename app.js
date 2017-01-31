@@ -160,6 +160,11 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
 
     // Depreciated.
     app.get("/aqJsonDb", function (req, res) {
+        var fs = require("fs")
+        if (!fs.existsSync(aqJsonFile)) {
+            loadAqJson2Db()
+        }
+
         res.sendfile(aqJsonFile);
     })
 
