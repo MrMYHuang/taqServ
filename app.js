@@ -181,7 +181,6 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
                 }
 
                 var aqJson = JSON.parse(fs.readFileSync(aqJsonFile, 'utf8'))
-                fs.closeSync()
                 aqJson.error = ""
                 res.json(aqJson);
             }
