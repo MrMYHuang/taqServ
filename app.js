@@ -65,7 +65,6 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
             var fs = require("fs")
             // Save to file.
             fs.writeFileSync(aqJsonFile, body, 'utf8')
-            fs.closeSync()
         }
         var jb = JSON.parse(body)
         var jTaqs = jb.result.records;
