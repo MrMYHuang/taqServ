@@ -171,6 +171,10 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
             }
             else {
                 var fs = require("fs")
+                if (!fs.existsSync(aqJsonFile)) {
+                    loadAqJson2Db()
+                }
+
                 var aqJson = JSON.parse(fs.readFileSync(aqJsonFile, 'utf8'))
                 fs.closeSync()
                 aqJson.error = ""
