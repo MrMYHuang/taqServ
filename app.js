@@ -60,10 +60,13 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
             return
         }
 
-        // Read json.
-        var fs = require("fs")
-        // Save to file.
-        fs.writeFileSync(aqJsonFile, body, 'utf8');
+        if (body != "") {
+            // Read json.
+            var fs = require("fs")
+            // Save to file.
+            fs.writeFileSync(aqJsonFile, body, 'utf8')
+            fs.closeSync()
+        }
         var jb = JSON.parse(body)
         var jTaqs = jb.result.records;
 
@@ -76,6 +79,11 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
 
     function updateOneSite2Db(jTaq) {
         db.collection(tabName).findOne({ SiteName: jTaq["SiteName"] }, (err, doc) => {
+            if (err) {
+                console.log("MongoDB failed: " + err)
+                return
+            }
+
             updateAllAqs2Db(err, doc, jTaq)
         })
     }
@@ -162,8 +170,9 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
                 res.send({ error: "Authentication failed!" })
             }
             else {
-                var fs = require('fs')
+                var fs = require("fs")
                 var aqJson = JSON.parse(fs.readFileSync(aqJsonFile, 'utf8'))
+                fs.closeSync()
                 aqJson.error = ""
                 res.json(aqJson);
             }
