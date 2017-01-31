@@ -178,11 +178,14 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
                 var fs = require("fs")
                 if (!fs.existsSync(aqJsonFile)) {
                     loadAqJson2Db()
+                    aqJson.error = "Database is not ready."
+                    res.json(aqJson);
                 }
-
-                var aqJson = JSON.parse(fs.readFileSync(aqJsonFile, 'utf8'))
-                aqJson.error = ""
-                res.json(aqJson);
+                else {
+                    var aqJson = JSON.parse(fs.readFileSync(aqJsonFile, 'utf8'))
+                    aqJson.error = ""
+                    res.json(aqJson);
+                }
             }
         })
     })
