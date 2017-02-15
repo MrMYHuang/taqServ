@@ -33,6 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="app.js" />
+    <Compile Include="Params.js" />
     <Compile Include="postDbInit.js" />
     <Compile Include="routes\index.js" />
     <Compile Include="routes\initTabs.js" />

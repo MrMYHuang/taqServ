@@ -1,4 +1,5 @@
 ﻿'use strict';
+var params = require('Params');
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -51,7 +52,7 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
     function loadAqJson2Db() {
         // Download AQ db json from TW EPA.
         var request = require('request');
-        request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805/?format=json&sort=SiteName&token=EVrPslGk9U2ftHxkwwkW4g', updateAllSites2Db)
+        request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805/?format=json&sort=SiteName&token=' + params.EpatwAqiDataServToken, updateAllSites2Db)
     }
 
     function updateAllSites2Db(error, response, body) {
