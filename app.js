@@ -39,8 +39,6 @@ var usersTabName = "users"
 // Connect to MongoDB.
 var db;
 var MONGODB_URI = process.env.MONGODB_URI;
-//var MONGODB_URI = "YourMongoDbUri"
-//var MONGODB_URI = "YourMongoDbUri"
 mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
     if (err) {
         console.log("MongoDB failed: " + err)
