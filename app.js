@@ -1,5 +1,5 @@
 ﻿'use strict';
-var params = require('Params');
+var params = require('./Params');
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -39,6 +39,7 @@ var usersTabName = "users"
 // Connect to MongoDB.
 var db;
 var MONGODB_URI = process.env.MONGODB_URI;
+//var MONGODB_URI = 'mongodb://taq:password@localhost:27017/taq'
 mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
     if (err) {
         console.log("MongoDB failed: " + err)
@@ -50,7 +51,8 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
     function loadAqJson2Db() {
         // Download AQ db json from TW EPA.
         var request = require('request');
-        request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805/?format=json&sort=SiteName&token=' + params.EpatwAqiDataServToken, updateAllSites2Db)
+        //request('http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-000259/?format=json&sort=SiteName&token=' + params.EpatwAqiDataServToken, updateAllSites2Db)
+        request('https://data.epa.gov.tw/api/v1/aqx_p_432?format=json&limit=10000&api_key=' + params.EpatwAqiDataServToken, updateAllSites2Db);
     }
 
     function updateAllSites2Db(error, response, body) {
@@ -59,13 +61,14 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
             return
         }
 
+        var jb = {};
+        jb.result = {};
         if (body != "") {
-            // Read json.
+            jb.result.records = JSON.parse(body).records;
             var fs = require("fs")
             // Save to file.
-            fs.writeFileSync(aqJsonFile, body, 'utf8')
+            fs.writeFileSync(aqJsonFile, JSON.stringify(jb), 'utf8')
         }
-        var jb = JSON.parse(body)
         var jTaqs = jb.result.records;
 
         // Loop for each site.
@@ -127,8 +130,13 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
     */
 
     app.get("/loadAq2Db", function (req, res) {
-        loadAqJson2Db();
-        res.send("Done!");
+        try {
+            loadAqJson2Db();
+            res.send("Done!");
+        }
+        catch(err) {
+            res.send(err)
+        }
     })
 
     // Get aq data of siteName. Depreciated.
@@ -149,8 +157,13 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
             }
             else {
                 db.collection(tabName).findOne({ SiteName: siteName }, function (err, doc) {
-                    doc.error = ""
-                    res.json(doc)
+                    if (err || doc == null) {
+                        res.send({ error: "Table not found!: " + siteName })
+                    }
+                    else {
+                        doc.error = ""
+                        res.json(doc)
+                    }
                 })
             }
         })
@@ -181,9 +194,18 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
                     res.json(aqJson);
                 }
                 else {
-                    aqJson = JSON.parse(fs.readFileSync(aqJsonFile, 'utf8'))
-                    aqJson.error = ""
-                    res.json(aqJson);
+                    var jStr;
+                    try {
+                        jStr = fs.readFileSync(aqJsonFile, 'utf8')
+                        aqJson = JSON.parse(jStr)
+                        aqJson.error = ""
+                    }
+                    catch(err) {
+                        aqJson.error = err + ": " + jStr
+                    }
+                    finally {
+                        res.json(aqJson)
+                    }
                 }
             }
         })
@@ -222,7 +244,7 @@ mongodb.MongoClient.connect(MONGODB_URI, function (err, _db) {
             }
             else {
                 var jFbRes = JSON.parse(body)
-                var uid = jFbRes.user_id
+                var uid = jFbRes.sub;
                 // Check if a registered user
                 db.collection(usersTabName).findOne({ uid: uid }, function (err, doc) {
                     if (doc) {
