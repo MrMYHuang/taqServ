@@ -1,23 +1,28 @@
 {
-  "name": "express-app1",
-  "version": "0.0.0",
+  "name": "taqServ",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www.js"
+    "build": "tsc",
+    "start": "node ./dist/index.js"
   },
-  "description": "ExpressApp1",
+  "description": "TAQ server",
   "author": {
-    "name": "myh"
+    "name": "Meng-Yuan Huang <myh@live.com>"
   },
   "dependencies": {
+    "axios": "^0.27.2",
     "body-parser": "^1.15.0",
     "cookie-parser": "^1.4.0",
     "debug": "^2.2.0",
     "express": "^4.14.0",
-    "mongodb": "^2.2.16",
+    "mongodb": "^4.7.0",
     "morgan": "^1.7.0",
-    "pug": "^2.0.0-beta6",
-    "request": "^2.79.0",
     "serve-favicon": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/request": "^2.48.8",
+    "typescript": "^4.7.4"
   }
 }
