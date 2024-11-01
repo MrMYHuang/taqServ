@@ -2,14 +2,14 @@ import path from 'path';
 import { MongoClient, Db, WithId, Document } from 'mongodb';
 import express from 'express';
 import axios, { AxiosResponse } from 'axios';
-import * as params from './Params';
+import {params} from './Params';
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 import { router as routes } from './routes/index';
-
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 export var app = express();
 
 // uncomment after placing your favicon in /public
@@ -33,19 +33,18 @@ var usersTabName = "users"
 // Connect to MongoDB.
 let db: Db;
 
-const uri = "mongodb+srv://user:password@host.mongodb.net/?retryWrites=true&w=majority";
-const client = new MongoClient(uri);
+const client = new MongoClient(params.MongoDBUrl);
 
-client.connect(err => {
-    if (err) {
-        console.log("MongoDB failed: " + err);
-        return;
+async function init() {
+    try {
+        await client.connect();
+        db = client.db("taqv2");
+        console.log("MongoDB connection succeeds!");
+    } catch (error) {
+        console.log("MongoDB failed: " + error);
     }
-
-    db = client.db("taqv2");
-
-    console.log("MongoDB connection succeeds!");
-});
+}
+init();
 
 app.use('/initTabs', function (req, res) {
     //require('./routes/initTabs')(aqFields, db, tabName);
@@ -54,7 +53,7 @@ app.use('/initTabs', function (req, res) {
 
 async function loadAqJson2Db() {
     // Download AQ db json from TW EPA.
-    const res = await axios.get('https://data.epa.gov.tw/api/v2/aqx_p_432?format=json&limit=10000&api_key=' + params.EpatwAqiDataServToken, {
+    const res = await axios.get('https://data.moenv.gov.tw/api/v2/aqx_p_432?format=JSON&limit=10000&api_key=' + params.EpatwAqiDataServToken, {
         responseType: 'json',
     });
     return updateAllSites2Db(res);
@@ -107,7 +106,7 @@ async function updateOneSite2Db(jTaq: any) {
     }
 }
 
-function updateAllAqs2Db(doc: WithId<Document>, jTaq: any) {
+async function updateAllAqs2Db(doc: WithId<Document>, jTaq: any) {
 
     var aqs = doc;
     var id = aqs._id;
@@ -128,12 +127,11 @@ function updateAllAqs2Db(doc: WithId<Document>, jTaq: any) {
         aqs[aqField.replace(".", "_")][pubHour] = isNaN(v = parseFloat(jTaq[aqField])) ? 0 : v;
     }
     // Update DB.
-    db.collection(tabName).updateOne({ _id: id }, { $set: aqs }, { upsert: true }, (err) => {
-        if (err) {
-            console.log(err)
-            return
-        }
-    })
+    try {
+        await db.collection(tabName).updateOne({ _id: id }, { $set: aqs }, { upsert: true });
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 /*
@@ -151,39 +149,52 @@ app.get("/loadAq2Db", function (req, res) {
         loadAqJson2Db();
         res.send("Done!");
     }
-    catch (err) {
-        res.send(err)
+    catch (error) {
+        console.error(error);
+        res.send(error);
     }
 });
 
 // Get aq data of siteName. Depreciated.
-app.get("/" + tabName, function (req, res) {
+app.get("/" + tabName, async function (req, res) {
     var siteName = req.query.siteName;
-    db.collection(tabName).findOne({ sitename: siteName }, function (err, doc) {
+    try {
+        const doc = await db.collection(tabName).findOne({ sitename: siteName });
         res.json(doc);
-    })
+    } catch (error) {
+        console.error(error);
+        res.send({ error: error });
+    }
 });
 
 // Get aq data of siteName.
-app.post("/" + tabName, function (req, res) {
+app.post("/" + tabName, async function (req, res) {
     var siteName = req.query.siteName;
-    var jReq = req.body
-    db.collection(usersTabName).findOne({ uid: jReq.uid, pwd: jReq.pwd }, function (err, doc) {
-        if (err || doc == null) {
-            res.send({ error: "Authentication failed!" })
-        }
-        else {
-            db.collection(tabName).findOne({ sitename: siteName }, function (err, doc) {
-                if (err || doc == null) {
-                    res.send({ error: "Table not found!: " + siteName })
+    var jReq = req.body;
+    try {
+        const doc = await db.collection(usersTabName).findOne({ uid: jReq.uid, pwd: jReq.pwd });
+
+        if (doc == null) {
+            throw new Error("doc is null");
+        } else {
+            try {
+                let doc2 = await db.collection(tabName).findOne({ sitename: siteName });
+                if (doc2 == null) {
+                    throw new Error("doc2 is null");
+                } else {
+                    doc2.error = "";
+                    res.json(doc2);
                 }
-                else {
-                    doc.error = ""
-                    res.json(doc)
-                }
-            })
+            } catch (error) {
+                console.error(error);
+                res.send({ error: "Table not found!: " + siteName });
+                return
+            }
         }
-    })
+    } catch (error) {
+        console.error(error);
+        res.send({ error: "Authentication failed!" });
+    }
 });
 
 // Depreciated.
@@ -196,21 +207,20 @@ app.get("/aqJsonDb", function (req, res) {
     res.sendfile(aqJsonFile);
 })
 
-app.post("/aqJsonDb", function (req, res) {
+app.post("/aqJsonDb", async function (req, res) {
     var jReq = req.body
-    db.collection(usersTabName).findOne({ uid: jReq.uid, pwd: jReq.pwd }, function (err, doc) {
-        if (err || doc == null) {
-            res.send({ error: "Authentication failed!" });
-        }
-        else {
+    try {
+        const doc = await db.collection(usersTabName).findOne({ uid: jReq.uid, pwd: jReq.pwd });
+        if (doc == null) {
+            throw new Error("doc is null");
+        } else {
             var fs = require("fs");
             let aqJson: any = {};
             if (!fs.existsSync(aqJsonFile)) {
                 loadAqJson2Db()
                 aqJson.error = "Database is not ready.";
                 res.json(aqJson);
-            }
-            else {
+            } else {
                 var jStr;
                 try {
                     jStr = fs.readFileSync(aqJsonFile, 'utf8')
@@ -225,11 +235,13 @@ app.post("/aqJsonDb", function (req, res) {
                 }
             }
         }
-    })
+    } catch (error) {
+        console.error(error);
+        res.send({ error: "Authentication failed!" });
+    }
 })
 
-var auth0Domain = "myh.auth0.com";
-var validateUserTokenUri = "https://" + auth0Domain + "/userinfo"
+var validateUserTokenUri = "https://" + params.auth0Domain + "/userinfo"
 
 function genUserPwd(userPwdLen = 16) {
     var crypto = require('crypto');
@@ -257,24 +269,23 @@ app.post("/userReg", async function (taqReq, taqRes) {
 
     if (fbRes.status != 200) {
         taqRes.send({ error: "Bad user token. Respose from Auth0: " + jFbRes })
-    }
-    else {
+    } else {
         var uid = jFbRes.sub;
         // Check if a registered user
-        db.collection(usersTabName).findOne({ uid: uid }, function (err, doc) {
+        try {
+            const doc = await db.collection(usersTabName).findOne({ uid: uid })
             if (doc) {
                 taqRes.send({ error: "", pwd: doc.pwd })
-            }
-            // Not a registered user.
-            else {
+            } else {
+                // Not a registered user.
                 var userPwd = genUserPwd()
-                db.collection(usersTabName).insertOne(
-                    { uid: uid, pwd: userPwd, email: jReq.email },
-                    function (err, doc) {
-                        taqRes.send({ error: "", pwd: userPwd })
-                    });
+                await db.collection(usersTabName).insertOne({ uid: uid, pwd: userPwd, email: jReq.email });
+                taqRes.send({ error: "", pwd: userPwd });
             }
-        })
+        } catch (error) {
+            console.error(error);
+            taqRes.send({ error: error });
+        }
     }
 });
 
